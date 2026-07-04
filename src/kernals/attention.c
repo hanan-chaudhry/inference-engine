@@ -5,11 +5,11 @@
 #include"../../inc/kernals/attention.h"
 #include<stdbool.h>
 // masked attention ? , sqrt_d
-void attention(double* Q, double* K, double* V, uint16_t n, uint16_t d, double* out, 
+void attention(double* Q, double* K, double* V, uint32_t n, uint32_t d, double* out, 
                  bool masked){
                     
-    uint16_t score_dim = n * n; 
-    uint16_t out_dim = n * d;
+    uint32_t score_dim = n * n; 
+    uint32_t out_dim = n * d;
     double score[score_dim];
     double probs[score_dim];
     double mask[score_dim];

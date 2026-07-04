@@ -1,1 +1,2 @@
-main
+.venv
+src/kernals/softmax.o

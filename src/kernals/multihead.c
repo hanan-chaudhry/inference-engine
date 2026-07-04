@@ -1,8 +1,8 @@
 #include"blis.h"
 #include<stdio.h>
-void multi_head_attention(double* W_Q, double* W_K, double* W_V, double* X, uint16_t* w_dim,
-                            uint16_t* n, uint16_t* d, uint8_t* h, double* sqrt_d){
-    const uint16_t Q_dim = (*n) * (*d);
+void multi_head_attention(double* W_Q, double* W_K, double* W_V, double* X, uint32_t* w_dim,
+                            uint32_t* n, uint32_t* d, uint32_t* h, double* sqrt_d){
+    const uint32_t Q_dim = (*n) * (*d);
     double Q[Q_dim];
     double K[Q_dim];
     double V[Q_dim];

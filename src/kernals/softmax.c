@@ -1,6 +1,6 @@
 #include "../../inc/kernals/softmax.h"
 #include"blis.h"
-void softmax(double* x, double* y, uint16_t n){ // aoun bhai se poochna maximum vocabulary of any LLM
+void softmax(double* x, double* y, uint32_t n){ // aoun bhai se poochna maximum vocabulary of any LLM
   double normalizer = 0;
   for(int i = 0;i < n;i++){
     y[i] = exp(x[i]);
