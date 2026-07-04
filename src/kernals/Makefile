@@ -4,7 +4,7 @@ CFLAGS = -I/usr/local/include
 LDFLAGS = -L/usr/local/lib -lblis -lm
 
 TARGET = kernels.so
-SRC = attention.o softmax.o
+SRC = attention.o softmax.o layernorm.o
 
 all: $(TARGET)
 
@@ -17,5 +17,8 @@ softmax.so: softmax.c
 attention.so: attention.c softmax.c
 	$(CC) -shared -fPIC attention.c softmax.c $(CFLAGS) $(LDFLAGS) -o attention.so
 
+layernorm.so: layernorm.c
+	$(CC) -shared -fPIC layernorm.c $(CFLAGS) $(LDFLAGS) -o layernorm.so
+	
 clean:
 	rm -f $(SRC) $(TARGET)
