@@ -3,10 +3,10 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import sys
+import platform
 
-# lib = ctypes.CDLL("../../src/kernals/layernorm.dylib")  # macOS
-lib = ctypes.CDLL("../../src/kernals/layernorm.so")       # Linux
-# lib = ctypes.CDLL("../../src/kernals/layernorm.dll")    # Windows
+_EXT = {"Darwin": ".dylib", "Linux": ".so", "Windows": ".dll"}
+lib = ctypes.CDLL(f"build/libkernels{_EXT[platform.system()]}")
 
 lib.kernel_layernorm_cpu_f32_forward.argtypes = [
     ctypes.POINTER(ctypes.c_float),

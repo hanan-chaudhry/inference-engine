@@ -1,8 +1,10 @@
 import ctypes
 import numpy as np
 import torch
+import platform
 
-lib = ctypes.CDLL("../../src/kernals/kernals.so")
+_EXT = {"Darwin": ".dylib", "Linux": ".so", "Windows": ".dll"}
+lib = ctypes.CDLL(f"build/libkernels{_EXT[platform.system()]}")
 
 lib.softmax.argtypes = [
     np.ctypeslib.ndpointer(dtype=np.float64, flags="C_CONTIGUOUS"),
@@ -30,4 +32,9 @@ for _ in range(num_test):
         passed +=1
     except AssertionError:
         pass
-print(f"Passed: {passed}/{num_test}")
+
+if passed == num_test:
+    print(f"\033[92m[PASS]\033[0m softmax ({passed}/{num_test} tests passed)")
+else:
+    print(f"\033[91m[FAIL]\033[0m softmax ({passed}/{num_test} tests passed)")
+    
