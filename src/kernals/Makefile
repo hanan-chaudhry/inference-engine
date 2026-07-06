@@ -4,7 +4,7 @@ CFLAGS = -I/usr/local/include
 LDFLAGS = -L/usr/local/lib -lblis -lm
 
 TARGET = kernals.so
-SRC = attention.c softmax.c multiAttention.c
+SRC = attention.c softmax.c multiAttention.c relu.c
 
 all: $(TARGET)
 

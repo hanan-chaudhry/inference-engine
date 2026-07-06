@@ -4,7 +4,6 @@
 #include "../../inc/kernals/softmax.h"
 #include"../../inc/kernals/attention.h"
 #include<stdbool.h>
-// masked attention ? , sqrt_d
 void attention(double* Q, double* K, double* V, uint32_t n, uint32_t d, double* out, 
                  bool masked){
                     
@@ -30,20 +29,3 @@ void attention(double* Q, double* K, double* V, uint32_t n, uint32_t d, double* 
     bli_dgemm(BLIS_NO_TRANSPOSE, BLIS_NO_TRANSPOSE, n, d, n, &alpha, probs, n,
          1, V, 1, n, &beta, out, 1, n);
 }
-// int main(){
-
-//     double Q[6] = {1,0,1,0,1,1};
-//     double K[6] = {1,0,1,0,1,1};
-//     double V[6] = {10,0,30,0,20,30};
-//     uint16_t n = 3, d = 2;
-//     double out[6];
-//     attention(Q, K, V, n, d, out, true);
-//     for(int i = 0;i < n;i++){
-//         for(int j = 0;j < d;j++){
-//             printf("%f", out[(i * d) + j]);
-//             printf(" ");
-//         }
-//         printf("\n");
-//     }
-//     return 0;
-// }
