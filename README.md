@@ -4,7 +4,8 @@
 list of all kernels implemented and optimized for speed and performance
 
 ## Softmax
-
+- used bli_dinvscalv function and plain loop to compute softmax of input x and outputs y in result
+  
 ## Self Attention
 - It includes the masking flag and is implemented without any if conditions eliminating branching in code
 
@@ -25,13 +26,18 @@ list of all kernels implemented and optimized for speed and performance
 - simple looping approach was around 2x faster so that implementation was used
 
 ## GELU
-
+- calculate constants before loop
+- in loop calculate output using formula and save it in output
+  
 ## SILU
-
+- plain c for loop with function computing output for each iterration
+  
 ## RELU
+- relu activation function implemented using masking to avoid branching and condition statements
 
 ## SIGMOID
-
+- plain c for loop with function computing output for each iterration
+  
 ## Testing approach
 - For every kernal, load the c object file and matched the output with pytorch built-in functions
 - Ran 1000 tests of random input for every kernal separately
