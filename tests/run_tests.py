@@ -6,9 +6,10 @@ root = Path(__file__).resolve().parent.parent
 
 tests = [
     root / "tests/unit/layernorm.py",
+    root / "tests/unit/rmsnorm.py",
     root / "tests/unit/softmax.py",
     root / "tests/unit/attention.py",
-    root / "tests/unit/rmsnorm.py",
+    root / "tests/unit/multiAttention.py",
 ]
 
 passed = 0
