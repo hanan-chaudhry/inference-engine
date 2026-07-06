@@ -3,6 +3,13 @@
 #include<stdio.h>
 #include<stdint.h>
 
-void rms_norm();
+void kernel_rmsnorm_cpu_f32_forward(
+    const float* __restrict embed,
+    const float* __restrict weight,
+    float* __restrict y,
+    size_t seq_len,
+    size_t embed_dim,
+    float eps
+);
 
 #endif
