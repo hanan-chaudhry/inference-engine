@@ -10,7 +10,7 @@ void kernel_layernorm_cpu_f32_forward(
     const float* __restrict bias,          // beta or shift
     float* __restrict y,                   // output
     size_t seq_len,                        // number of tokens
-    size_t embed_dim,                      // embedding dimension
+    size_t embed_dim,                      // embedding dimension (d)
     float eps                              // div zero prevention 
 ) {
 
