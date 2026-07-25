@@ -1,0 +1,43 @@
+#version 460
+
+// used uint instead of boolean for arithmatic so pass either 0 or 1 in flags
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(push_constant) uniform Params
+{
+    uint n;
+    uint d;
+    uint k;
+    uint Is_A_row_major;
+    uint Is_B_row_major;
+    uint Is_C_row_major;
+} params;
+layout(set = 0, binding = 1) buffer inputA
+{
+    float A[];
+};
+layout(set = 0, binding = 2) buffer inputB
+{
+    float B[];
+};
+layout(set = 0, binding = 3) buffer output
+{
+    float C[];
+};
+// use div-mod operation for better result
+void main()
+{
+    uint i = gl_GlobalInvocationID.x;
+    uint j = gl_GlobalInvocationID.y;
+    if (i >= params.n || j >= params.k)
+        return;
+    float sum = 0.0f;
+    for(uint t = 0;t < params.d;t++){
+        uint A_idx = (params.Is_A_row_major * (i * params.d + t)) + (!params.Is_A_row_major * (t * params.n + i));
+        uint B_idx = (params.Is_B_row_major * (t * params.k + j)) + (!params.Is_B_row_major * (j * params.d + t));
+        sum = fma(A[A_idx], B[B_idx],sum);
+    }
+    uint C_idx = (params.Is_C_row_major * (i * params.k + j)) + (!params.Is_C_row_major * (j * params.n + i));
+    C[C_idx] = sum;
+}
