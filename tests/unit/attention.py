@@ -8,12 +8,12 @@ _EXT = {"Darwin": ".dylib", "Linux": ".so", "Windows": ".dll"}
 lib = ctypes.CDLL(f"build/libkernels{_EXT[platform.system()]}")
 
 lib.attention.argtypes = [
-    np.ctypeslib.ndpointer(dtype=np.float64, flags="F_CONTIGUOUS"),
-    np.ctypeslib.ndpointer(dtype=np.float64, flags="F_CONTIGUOUS"),
-    np.ctypeslib.ndpointer(dtype=np.float64, flags="F_CONTIGUOUS"),
+    np.ctypeslib.ndpointer(dtype=np.float32, flags="F_CONTIGUOUS"),
+    np.ctypeslib.ndpointer(dtype=np.float32, flags="F_CONTIGUOUS"),
+    np.ctypeslib.ndpointer(dtype=np.float32, flags="F_CONTIGUOUS"),
     ctypes.c_uint32,
     ctypes.c_uint32,
-    np.ctypeslib.ndpointer(dtype=np.float64, flags="F_CONTIGUOUS"),
+    np.ctypeslib.ndpointer(dtype=np.float32, flags="F_CONTIGUOUS"),
     ctypes.c_bool
 ]
 
@@ -21,14 +21,15 @@ lib.attention.restype = None
 
 num_test = 1000
 
-
+# L = 10
+# D = 20
 passed = 0
-L = 10
-D = 20
 for _ in range(num_test):
-    Q_np = np.asfortranarray(np.random.randn(L, D))
-    K_np = np.asfortranarray(np.random.randn(L, D))
-    V_np = np.asfortranarray(np.random.randn(L, D))
+    L = np.random.randint(1, 64)
+    D = np.random.randint(1, 64)
+    Q_np = np.asfortranarray(np.random.randn(L, D)).astype(np.float32)
+    K_np = np.asfortranarray(np.random.randn(L, D)).astype(np.float32)
+    V_np = np.asfortranarray(np.random.randn(L, D)).astype(np.float32)
     Q = torch.from_numpy(Q_np).unsqueeze(0).unsqueeze(0)
     K = torch.from_numpy(K_np).unsqueeze(0).unsqueeze(0)
     V = torch.from_numpy(V_np).unsqueeze(0).unsqueeze(0)
@@ -41,7 +42,7 @@ for _ in range(num_test):
         dropout_p=0.0,
     )
     res = np.asfortranarray(res.squeeze(0).squeeze(0).numpy())
-    out = np.empty((L, D), dtype=np.float64, order="F")
+    out = np.empty((L, D), dtype=np.float32, order="F")
     lib.attention(
         Q_np,
         K_np,
@@ -52,19 +53,22 @@ for _ in range(num_test):
         True,
     )
     try:
-        assert (np.allclose(out, res, rtol=1e-9, atol=1e-12))
+        assert (np.allclose(out, res, rtol=1e-5, atol=1e-6))
         passed +=1
     except AssertionError:
-        print(out)
-        print("\n")
-        print(res)
+        # print(out)
+        # print("\n")
+        # print(res)
+        pass
 print(f"(With masking) Passed: {passed}/{num_test}")
 
 passed = 0
 for _ in range(num_test):
-    Q_np = np.asfortranarray(np.random.randn(L, D))
-    K_np = np.asfortranarray(np.random.randn(L, D))
-    V_np = np.asfortranarray(np.random.randn(L, D))
+    L = np.random.randint(1, 64)
+    D = np.random.randint(1, 64)
+    Q_np = np.asfortranarray(np.random.randn(L, D).astype(np.float32))
+    K_np = np.asfortranarray(np.random.randn(L, D).astype(np.float32))
+    V_np = np.asfortranarray(np.random.randn(L, D).astype(np.float32))
     Q = torch.from_numpy(Q_np).unsqueeze(0).unsqueeze(0)
     K = torch.from_numpy(K_np).unsqueeze(0).unsqueeze(0)
     V = torch.from_numpy(V_np).unsqueeze(0).unsqueeze(0)
@@ -77,7 +81,7 @@ for _ in range(num_test):
         dropout_p=0.0,
     )
     res = np.asfortranarray(res.squeeze(0).squeeze(0).numpy())
-    out = np.empty((L, D), dtype=np.float64, order="F")
+    out = np.empty((L, D), dtype=np.float32, order="F")
     lib.attention(
         Q_np,
         K_np,
@@ -88,10 +92,11 @@ for _ in range(num_test):
         False,
     )
     try:
-        assert (np.allclose(out, res, rtol=1e-9, atol=1e-12))
+        assert (np.allclose(out, res, rtol=1e-5, atol=1e-6))
         passed +=1
     except AssertionError:
-        print(out)
-        print("\n")
-        print(res)
+        # print(out)
+        # print("\n")
+        # print(res)
+        pass
 print(f"(Without masking) Passed: {passed}/{num_test}")

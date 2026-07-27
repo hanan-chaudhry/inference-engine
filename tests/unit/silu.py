@@ -9,8 +9,8 @@ _EXT = {"Darwin": ".dylib", "Linux": ".so", "Windows": ".dll"}
 lib = ctypes.CDLL(f"build/libkernels{_EXT[platform.system()]}")
 
 lib.SILU.argtypes = [
-    np.ctypeslib.ndpointer(dtype=np.float64, flags="C_CONTIGUOUS"),
-    np.ctypeslib.ndpointer(dtype=np.float64, flags="C_CONTIGUOUS"),
+    np.ctypeslib.ndpointer(dtype=np.float32, flags="C_CONTIGUOUS"),
+    np.ctypeslib.ndpointer(dtype=np.float32, flags="C_CONTIGUOUS"),
     ctypes.c_uint32
 ]
 

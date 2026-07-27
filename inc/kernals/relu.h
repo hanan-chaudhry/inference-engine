@@ -2,5 +2,5 @@
 #define __RELU_H__
 #include<stdint.h>
 
-void RELU(const double* __restrict x, double* __restrict y, const uint32_t len);
+void RELU(const float* __restrict x, float* __restrict y, const uint32_t len);
 #endif

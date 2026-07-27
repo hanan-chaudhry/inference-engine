@@ -9,15 +9,15 @@ layout(push_constant) uniform Params
     uint n;
     uint d;
     uint k;
-    uint Is_A_row_major;
-    uint Is_B_row_major;
-    uint Is_C_row_major;
+    uint A_row_major_flag;
+    uint B_row_major_flag;
+    uint C_row_major_flag;
 } params;
-layout(set = 0, binding = 1) buffer inputA
+layout(set = 0, binding = 1) readonly buffer inputA
 {
     float A[];
 };
-layout(set = 0, binding = 2) buffer inputB
+layout(set = 0, binding = 2) readonly buffer inputB
 {
     float B[];
 };
@@ -34,10 +34,10 @@ void main()
         return;
     float sum = 0.0f;
     for(uint t = 0;t < params.d;t++){
-        uint A_idx = (params.Is_A_row_major * (i * params.d + t)) + (!params.Is_A_row_major * (t * params.n + i));
-        uint B_idx = (params.Is_B_row_major * (t * params.k + j)) + (!params.Is_B_row_major * (j * params.d + t));
+        uint A_idx = (params.A_row_major_flag * (i * params.d + t)) + (!params.A_row_major_flag * (t * params.n + i));
+        uint B_idx = (params.B_row_major_flag * (t * params.k + j)) + (!params.B_row_major_flag * (j * params.d + t));
         sum = fma(A[A_idx], B[B_idx],sum);
     }
-    uint C_idx = (params.Is_C_row_major * (i * params.k + j)) + (!params.Is_C_row_major * (j * params.n + i));
+    uint C_idx = (params.C_row_major_flag * (i * params.k + j)) + (!params.C_row_major_flag * (j * params.n + i));
     C[C_idx] = sum;
 }

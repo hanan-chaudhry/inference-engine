@@ -1,10 +1,10 @@
 #include "../../inc/kernals/softmax.h"
 #include"blis.h"
-void softmax(const double* __restrict x, double* __restrict y, const uint32_t n){
-  double normalizer = 0;
+void softmax(const float* __restrict x, float* __restrict y, const uint32_t n){
+  float normalizer = 0.0f;
   for (int i = 0;i < n;i++) {
-    y[i] = exp(x[i]);
+    y[i] = expf(x[i]);
     normalizer = normalizer + y[i];
   }
-  bli_dinvscalv(BLIS_NO_CONJUGATE, n, &normalizer, y, 1);
+  bli_sinvscalv(BLIS_NO_CONJUGATE, n, &normalizer, y, 1);
 }
