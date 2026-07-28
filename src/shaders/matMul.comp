@@ -1,43 +1,80 @@
-#version 460
+// #version 460
 
-// used uint instead of boolean for arithmatic so pass either 0 or 1 in flags
+// // used uint instead of boolean for arithmatic so pass either 0 or 1 in flags
+
+// layout(local_size_x = 16, local_size_y = 16) in;
+
+// layout(push_constant) uniform Params
+// {
+//     uint n;
+//     uint d;
+//     uint k;
+//     uint A_row_major_flag;
+//     uint B_row_major_flag;
+//     uint C_row_major_flag;
+// } params;
+// layout(set = 0, binding = 1) readonly buffer bufferA
+// {
+//     float A[];
+// };
+// layout(set = 0, binding = 2) readonly buffer bufferB
+// {
+//     float B[];
+// };
+// layout(set = 0, binding = 3) buffer bufferC
+// {
+//     float C[];
+// };
+// // use div-mod operation for better result
+// void main()
+// {
+//     uint i = gl_GlobalInvocationID.x;
+//     uint j = gl_GlobalInvocationID.y;
+//     if (i >= params.n || j >= params.k)
+//         return;
+//     float sum = 0.0f;
+//     for(uint t = 0;t < params.d;t++){
+//         uint A_idx = (params.A_row_major_flag * (i * params.d + t)) + (!params.A_row_major_flag * (t * params.n + i));
+//         uint B_idx = (params.B_row_major_flag * (t * params.k + j)) + (!params.B_row_major_flag * (j * params.d + t));
+//         sum = fma(A[A_idx], B[B_idx],sum);
+//     }
+//     uint C_idx = (params.C_row_major_flag * (i * params.k + j)) + (!params.C_row_major_flag * (j * params.n + i));
+//     C[C_idx] = sum;
+// }
+
+
+#version 460
 
 layout(local_size_x = 16, local_size_y = 16) in;
 
-layout(push_constant) uniform Params
-{
-    uint n;
-    uint d;
-    uint k;
-    uint A_row_major_flag;
-    uint B_row_major_flag;
-    uint C_row_major_flag;
+layout(std430, binding = 0) readonly buffer BufferA { float A[]; };
+layout(std430, binding = 1) readonly buffer BufferB { float B[]; };
+layout(std430, binding = 2) writeonly buffer BufferC { float C[]; };
+
+layout(push_constant) uniform PushConstants {
+    uint B;         // Batch size
+    uint M;         // Rows of A and C
+    uint N;         // Columns of B and C
+    uint K;         // Columns of A / Rows of B
+    float eps;      // Used later for LayerNorm
 } params;
-layout(set = 0, binding = 1) readonly buffer bufferA
-{
-    float A[];
-};
-layout(set = 0, binding = 2) readonly buffer bufferB
-{
-    float B[];
-};
-layout(set = 0, binding = 3) buffer bufferC
-{
-    float C[];
-};
-// use div-mod operation for better result
-void main()
-{
-    uint i = gl_GlobalInvocationID.x;
-    uint j = gl_GlobalInvocationID.y;
-    if (i >= params.n || j >= params.k)
+
+void main() {
+    // gl_GlobalInvocationID maps directly to our output matrix (C) coordinates
+    uint col = gl_GlobalInvocationID.x;
+    uint row = gl_GlobalInvocationID.y;
+    
+    if (row >= params.M || col >= params.N) {
         return;
-    float sum = 0.0f;
-    for(uint t = 0;t < params.d;t++){
-        uint A_idx = (params.A_row_major_flag * (i * params.d + t)) + (!params.A_row_major_flag * (t * params.n + i));
-        uint B_idx = (params.B_row_major_flag * (t * params.k + j)) + (!params.B_row_major_flag * (j * params.d + t));
-        sum = fma(A[A_idx], B[B_idx],sum);
     }
-    uint C_idx = (params.C_row_major_flag * (i * params.k + j)) + (!params.C_row_major_flag * (j * params.n + i));
-    C[C_idx] = sum;
+        
+    float sum = 0.0f;    
+    for(uint i = 0; i < params.K; i++) {
+        // A is [M x K] -> row * K + i
+        // B is [K x N] -> i * N + col
+        sum = fma(A[row * params.K + i], B[i * params.N + col], sum);
+    }
+    
+    // C is [M x N]
+    C[row * params.N + col] = sum;
 }

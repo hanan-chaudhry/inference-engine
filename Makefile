@@ -33,7 +33,7 @@ clean-engine:
 	
 # --- VULKAN ADDITIONS ---
 
-SHADERS = $(wildcard src/shaders/add.comp)
+SHADERS = $(wildcard src/shaders/*.comp)
 SPVS = $(SHADERS:.comp=.spv)
 
 shaders: $(SPVS)
