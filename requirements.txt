@@ -1,0 +1,10 @@
+vulkan-loader
+vulkan-loader-devel
+vulkan-tools
+vulkan-validation-layers
+vulkan-validation-layers-devel
+mesa-vulkan-drivers
+mesa-vulkan-drivers.i686
+glslc
+glm-devel
+glfw-devel
