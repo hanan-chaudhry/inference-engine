@@ -3,11 +3,11 @@
 
 ## Prerequisite
 
-use your distros package manager ie dnf, apt etc
+use your distros package manager to install the dependencies like dnf, apt etc
 ```bash
 sudo dnf install vulkan-loader vulkan-loader-devel vulkan-tools vulkan-validation-layers vulkan-validation-layers-devel mesa-vulkan-drivers mesa-vulkan-drivers.i686 glslc glm-devel glfw-devel
 ```
-or alternatively run this command in project root
+or alternatively run this command in project root to get dependencies
 ```bash
 sudo dnf install $(cat requirements.txt)
 ```
