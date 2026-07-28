@@ -3,6 +3,7 @@
 
 ## Prerequisite
 
+use your distros package manager ie dnf, apt etc
 ```bash
 sudo dnf install vulkan-loader vulkan-loader-devel vulkan-tools vulkan-validation-layers vulkan-validation-layers-devel mesa-vulkan-drivers mesa-vulkan-drivers.i686 glslc glm-devel glfw-devel
 ```
@@ -10,7 +11,6 @@ or alternatively run this command in project root
 ```bash
 sudo dnf install $(cat requirements.txt)
 ```
-sudo dnf install $(cat sys-requirements.txt)
 ## Implemented Kernels
 list of all kernels implemented and optimized for speed and performance
 
