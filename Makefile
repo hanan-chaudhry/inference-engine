@@ -27,11 +27,13 @@ test: build
 
 clean:
 	rm -rf $(BUILD_DIR)
+	rm -f engine
 
 clean-engine:
 	rm -f engine
 	
-# --- VULKAN ADDITIONS ---
+# --- VULKAN ADDITIONS ---:
+	rm -f engine
 
 SHADERS = $(wildcard src/shaders/*.comp)
 SPVS = $(SHADERS:.comp=.spv)
@@ -43,5 +45,5 @@ shaders: $(SPVS)
 
 VK_SOURCES = $(wildcard src/backend/vulkan/*.c)
 
-engine: main.c $(SOURCES) $(VK_SOURCES) shaders
-	$(CC) -O3 -march=native -ffast-math $(INCLUDES) -o $@ main.c $(SOURCES) $(VK_SOURCES) $(LIBS)
+engine: vulkantest.c $(SOURCES) $(VK_SOURCES) shaders
+	$(CC) -O3 -march=native -ffast-math $(INCLUDES) -o $@ vulkantest.c $(SOURCES) $(VK_SOURCES) $(LIBS)

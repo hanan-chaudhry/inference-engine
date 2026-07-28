@@ -18,12 +18,11 @@ layout(set = 0, binding = 1) readonly buffer bufferB
 {
     float B[];
 };
-layout(set = 0, binding = 2) buffer bufferC
+layout(set = 0, binding = 2) writeonly buffer bufferC
 {
     float C[];
 };
-void main()
-{
+void main() {
     uint i = gl_GlobalInvocationID.x;
     if (i >= params.M)
         return;
