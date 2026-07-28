@@ -13,15 +13,15 @@ layout(push_constant) uniform Params
     uint B_row_major_flag;
     uint C_row_major_flag;
 } params;
-layout(set = 0, binding = 1) readonly buffer inputA
+layout(set = 0, binding = 1) readonly buffer bufferA
 {
     float A[];
 };
-layout(set = 0, binding = 2) readonly buffer inputB
+layout(set = 0, binding = 2) readonly buffer bufferB
 {
     float B[];
 };
-layout(set = 0, binding = 3) buffer output
+layout(set = 0, binding = 3) buffer bufferC
 {
     float C[];
 };

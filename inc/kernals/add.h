@@ -2,6 +2,9 @@
 #define ADD_H
 #include<stdio.h>
 #include<stdint.h>
+#include "../backend/vk_core.h"
+#include "../backend/vk_mem.h"
+#include "../backend/vk_ops.h"
 
 void kernel_add_cpu_f32_forward(
     const float* a, const float* b,
@@ -9,5 +12,11 @@ void kernel_add_cpu_f32_forward(
     const size_t length
 );
 
+void kernel_add_vulkan_f32_forward(
+    VkContext* ctx,
+    const float* a, const float* b,
+    float* out,
+    const size_t n
+);
 
 #endif
