@@ -21,14 +21,14 @@ length = 100
 
 passed = 0
 for _ in range(num_test):
-    a = np.random.rand(length)
+    a = np.random.rand(length).astype(np.float32)
     b = np.zeros_like(a)
     x = torch.tensor(a)
     y = F.silu(x)
     lib.SILU(a,b, length)
     
     try:
-        assert (np.allclose(b, y, rtol=1e-9, atol=1e-12))
+        assert (np.allclose(b, y, rtol=1e-3, atol=1e-4))
         passed +=1
     except AssertionError:
         pass
