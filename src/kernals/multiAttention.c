@@ -32,13 +32,6 @@ void multiAttention(const float* __restrict W_Q,const float* __restrict W_K,
           attention((Q + (i * n * q_cols)), (K + (group_idx * n * q_cols)), 
           (V + (group_idx * n * q_cols)), n, q_cols, (res + (i * n * q_cols)), masked);
      }
-     for(int i = 0; i< n;i++){
-          for(int j = 0;j < d;j++){
-               printf("%f ", res[i * d + j]);
-          }
-          printf("\n");
-     }
-     printf("\n");
      bli_sgemm(BLIS_NO_TRANSPOSE, BLIS_NO_TRANSPOSE, n, d, d, &alpha, res, 1, n, W_O, 
      d, 1, &beta, out, d, 1);
 }

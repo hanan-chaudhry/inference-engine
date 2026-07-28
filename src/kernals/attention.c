@@ -19,13 +19,13 @@ void attention(const float* __restrict Q, const float* __restrict K,
     bli_sgemm(BLIS_NO_TRANSPOSE, BLIS_TRANSPOSE, n, n, d, &alpha, Q, 1,
          n, K, 1, n, &beta, score, n, 1);
     bli_sinvscalv(BLIS_NO_CONJUGATE, score_dim, &sqrt_d, score, 1);
-    if(masked){
-        for (uint32_t i = 0; i < n; i++) {
-            for (uint32_t j = i + 1; j < n; j++) {
-                score[i * n + j] = -FLT_MAX;
-            }
+    
+    for (uint32_t i = 0; i < n; i++) {
+        for (uint32_t j = i + 1; j < n; j++) {
+            score[i * n + j] = -FLT_MAX * masked;
         }
     }
+    
     for(int i = 0;i < n;i++){
         softmax((score + (i * n)), (probs + (i * n)), n);
     }
