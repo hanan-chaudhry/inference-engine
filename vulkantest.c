@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "inc/backend/vk_core.h"
 #include "inc/kernals/add.h"
-// #include "inc/kernals/matmul.h"
+#include "inc/kernals/matmul.h"
 
 void test_add(VkContext* ctx) {
     size_t N = 32;
@@ -43,10 +43,45 @@ void test_add(VkContext* ctx) {
 }
 
 void test_matmul(VkContext* ctx) {
-    printf("\n[MATMUL TEST]\n");
-    // to be implemented
+    uint32_t M = 32;
+    uint32_t K = 32;
+    uint32_t N = 32;
+
+    size_t bytes_A = M * K * sizeof(float);
+    size_t bytes_B = K * N * sizeof(float);
+    size_t bytes_C = M * N * sizeof(float);
+
+    float* A = (float*)malloc(bytes_A);
+    float* B = (float*)malloc(bytes_B);
+    float* C_cpu = (float*)malloc(bytes_C);
+    float* C_gpu = (float*)malloc(bytes_C);
+
+    for (size_t i = 0; i < M * K; i++) A[i] = 1.0f;
+    for (size_t i = 0; i < K * N; i++) B[i] = 2.0f;
+
+    kernel_matmul_cpu_f32_forward(A, B, C_cpu, M, N, K);
+    kernel_matmul_vulkan_f32_forward(ctx, A, B, C_gpu, M, N, K);
+
+    printf("\n--- MATMUL TEST (%dx%d * %dx%d) ---\n", M, K, K, N);
+    printf("CPU Result[0]: %f\n", C_cpu[0]);
+    printf("GPU Result[0]: %f\n", C_gpu[0]);
+
+    int mismatch = 0;
+    for (size_t i = 0; i < M * N; i++) {
+        float diff = C_cpu[i] - C_gpu[i];
+        if (diff < -0.001f || diff > 0.001f) {
+            printf("MISMATCH at index %zu: CPU=%f, GPU=%f\n", i, C_cpu[i], C_gpu[i]);
+            mismatch = 1;
+            break;
+        }
+    }
+
+    if (!mismatch) {
+        printf("Status: SUCCESS (All %u elements match!)\n", M * N);
+    }
     printf("\n\n");
 
+    free(A); free(B); free(C_cpu); free(C_gpu);
 }
 
 int main() {

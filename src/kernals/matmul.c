@@ -1,4 +1,6 @@
 #include "../../inc/kernals/matmul.h"
+#include <string.h>
+
 #include <blis/blis.h>
 
 void kernel_matmul_cpu_f32_forward(
@@ -21,4 +23,59 @@ void kernel_matmul_cpu_f32_forward(
         &beta,
         out, rs_c, cs_c
     );
+}
+
+
+
+void kernel_matmul_vulkan_f32_forward(
+    VkContext* ctx,
+    const float* a, const float* b, float* out,
+    const uint32_t M, const uint32_t N, const uint32_t K
+) {
+    size_t bytes_A = M * K * sizeof(float);
+    size_t bytes_B = K * N * sizeof(float);
+    size_t bytes_C = M * N * sizeof(float);
+
+    VkTensorBuffer vk_a = { 0 }, vk_b = { 0 }, vk_out = { 0 };
+    vk_allocate_tensor(ctx, &vk_a, bytes_A);
+    vk_allocate_tensor(ctx, &vk_b, bytes_B);
+    vk_allocate_tensor(ctx, &vk_out, bytes_C);
+
+    memcpy(vk_a.mapped_ptr, a, bytes_A);
+    memcpy(vk_b.mapped_ptr, b, bytes_B);
+    memset(vk_out.mapped_ptr, 0, bytes_C);
+
+    VkDescriptorSetLayout desc_layout;
+    VkPipelineLayout pipe_layout;
+    vk_create_universal_layout(ctx, &desc_layout, &pipe_layout);
+
+    VkPipeline pipeline = vk_create_compute_pipeline(ctx, "src/shaders/matmul.spv", pipe_layout);
+
+    if (pipeline == VK_NULL_HANDLE) {
+        printf("Error: Check shader path.\n");
+        return;
+    }
+
+    VkTensorBuffer* buffers[] = { &vk_a, &vk_b, &vk_out };
+    PushParams params = { 0 };
+    params.M = M;
+    params.N = N;
+    params.K = K;
+
+    uint32_t group_x = (N + 15) / 16;
+    uint32_t group_y = (M + 15) / 16;
+
+    vk_dispatch(ctx, pipeline, pipe_layout, buffers, 3, &params, group_x, group_y, 1);
+
+    vkQueueWaitIdle(ctx->compute_queue);
+
+    memcpy(out, vk_out.mapped_ptr, bytes_C);
+
+    vk_free_tensor(ctx, &vk_a);
+    vk_free_tensor(ctx, &vk_b);
+    vk_free_tensor(ctx, &vk_out);
+
+    vkDestroyPipeline(ctx->device, pipeline, NULL);
+    vkDestroyPipelineLayout(ctx->device, pipe_layout, NULL);
+    vkDestroyDescriptorSetLayout(ctx->device, desc_layout, NULL);
 }
