@@ -66,15 +66,13 @@ void test_matmul(VkContext* ctx) {
     double total_flops = 2.0 * (double)M * (double)N * (double)K;
     double gflops = (total_flops / time_gpu) / 1e9;
 
-    double theoretical_peak_gflops = 2048.0;
+    double theoretical_peak_gflops = 1792.0;
 
     double efficiency = (gflops / theoretical_peak_gflops) * 100.0;
 
     printf("GPU Compute Execution Time: %.3f ms\n", time_gpu * 1000.0);
     printf("Achieved Performance:       %.2f GFLOPs\n", gflops);
     printf("Hardware Efficiency:        %.2f%%\n", efficiency);
-
-
 
 
     printf("\n--- MATMUL TEST (%dx%d * %dx%d) ---\n", M, K, K, N);
