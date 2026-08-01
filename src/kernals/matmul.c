@@ -1,6 +1,8 @@
+#define _GNU_SOURCE
+
 #include "../../inc/kernals/matmul.h"
 #include <string.h>
-
+#include <time.h>
 #include <blis/blis.h>
 
 void kernel_matmul_cpu_f32_forward(
@@ -27,10 +29,12 @@ void kernel_matmul_cpu_f32_forward(
 
 
 
+
 void kernel_matmul_vulkan_f32_forward(
     VkContext* ctx,
     const float* a, const float* b, float* out,
-    const uint32_t M, const uint32_t N, const uint32_t K
+    const uint32_t M, const uint32_t N, const uint32_t K,
+    double* time
 ) {
     size_t bytes_A = M * K * sizeof(float);
     size_t bytes_B = K * N * sizeof(float);
@@ -65,9 +69,22 @@ void kernel_matmul_vulkan_f32_forward(
     uint32_t group_x = (N + 15) / 16;
     uint32_t group_y = (M + 15) / 16;
 
-    vk_dispatch(ctx, pipeline, pipe_layout, buffers, 3, &params, group_x, group_y, 1);
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
-    vkQueueWaitIdle(ctx->compute_queue);
+    vk_dispatch(ctx, pipeline, pipe_layout, buffers, 3, &params, group_x, group_y, 1);
+    // vkQueueWaitIdle(ctx->compute_queue);
+    VkResult wait_res = vkQueueWaitIdle(ctx->compute_queue);
+    if (wait_res != VK_SUCCESS) {
+        printf("CRITICAL: GPU crashed or was killed by the OS! Error code: %d\n", wait_res);
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+
+    if (time != NULL) {
+        *time = (end.tv_sec - start.tv_sec) +
+            (end.tv_nsec - start.tv_nsec) / 1e9;
+    }
 
     memcpy(out, vk_out.mapped_ptr, bytes_C);
 

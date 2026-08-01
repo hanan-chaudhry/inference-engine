@@ -14,7 +14,8 @@ void kernel_matmul_cpu_f32_forward(
 void kernel_matmul_vulkan_f32_forward(
     VkContext* ctx,
     const float* a, const float* b, float* out,
-    const uint32_t M, const uint32_t N, const uint32_t K
+    const uint32_t M, const uint32_t N, const uint32_t K,
+    double* time
 );
 
 #endif

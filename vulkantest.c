@@ -43,9 +43,9 @@ void test_add(VkContext* ctx) {
 }
 
 void test_matmul(VkContext* ctx) {
-    uint32_t M = 32;
-    uint32_t K = 32;
-    uint32_t N = 32;
+    uint32_t M = 2048;
+    uint32_t K = 2048;
+    uint32_t N = 2048;
 
     size_t bytes_A = M * K * sizeof(float);
     size_t bytes_B = K * N * sizeof(float);
@@ -60,7 +60,22 @@ void test_matmul(VkContext* ctx) {
     for (size_t i = 0; i < K * N; i++) B[i] = 2.0f;
 
     kernel_matmul_cpu_f32_forward(A, B, C_cpu, M, N, K);
-    kernel_matmul_vulkan_f32_forward(ctx, A, B, C_gpu, M, N, K);
+    double time_gpu = 0.0;
+    kernel_matmul_vulkan_f32_forward(ctx, A, B, C_gpu, M, N, K, &time_gpu);
+
+    double total_flops = 2.0 * (double)M * (double)N * (double)K;
+    double gflops = (total_flops / time_gpu) / 1e9;
+
+    double theoretical_peak_gflops = 2048.0;
+
+    double efficiency = (gflops / theoretical_peak_gflops) * 100.0;
+
+    printf("GPU Compute Execution Time: %.3f ms\n", time_gpu * 1000.0);
+    printf("Achieved Performance:       %.2f GFLOPs\n", gflops);
+    printf("Hardware Efficiency:        %.2f%%\n", efficiency);
+
+
+
 
     printf("\n--- MATMUL TEST (%dx%d * %dx%d) ---\n", M, K, K, N);
     printf("CPU Result[0]: %f\n", C_cpu[0]);
