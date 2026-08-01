@@ -2,19 +2,22 @@
 
 layout(local_size_x = 16) in;
 
-layout(push_constant) uniform Params
-{
-    uint n;
-    float alpha;
+layout(push_constant) uniform PushConstants {
+    uint B;
+    uint M;  
+    uint N;
+    uint K;
+    float eps;
 } params;
-layout(set = 0, binding = 1) buffer inputA
-{
-    float A[];
-};
-void main()
-{
+
+layout(std430, set = 0, binding = 0) buffer bufferA { float A[]; };
+
+void main() {
     uint i = gl_GlobalInvocationID.x;
-    if (i >= params.n)
+    
+    if (i >= params.N) {
         return;
-    A[i] = A[i] * params.alpha;
+    }
+    
+    A[i] = A[i] * params.eps;
 }
