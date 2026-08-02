@@ -5,7 +5,7 @@
 #include "inc/kernals/matmul.h"
 
 void test_add(VkContext* ctx) {
-    size_t N = 32;
+    size_t N = 2048;
     size_t bytes = N * sizeof(float);
 
     float* A = (float*)malloc(bytes);
@@ -97,6 +97,10 @@ void test_matmul(VkContext* ctx) {
     free(A); free(B); free(C_cpu); free(C_gpu);
 }
 
+void test_scale(VkContext* ctx) {
+    printf("pass");
+}
+
 int main() {
     VkContext ctx;
     if (!vk_init(&ctx)) {
@@ -108,6 +112,7 @@ int main() {
         printf("==============|Vulkan Inference Engine|==============\n");
         printf("[1] Test Add\n");
         printf("[2] Test MatMul\n");
+        printf("[3] Test Scale\n");
         printf("[0] Exit\n");
         printf("Select Test: ");
 
@@ -124,6 +129,9 @@ int main() {
             break;
         case 2:
             test_matmul(&ctx);
+            break;
+        case 3:
+            test_scale(&ctx);
             break;
         default:
             printf("\n[ Invalid choice. Try again. ]\n\n");

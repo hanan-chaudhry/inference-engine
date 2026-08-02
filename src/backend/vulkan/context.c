@@ -11,7 +11,7 @@ bool vk_init(VkContext* ctx) {
     app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     app_info.pEngineName = "NoEngine";
     app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    app_info.apiVersion = VK_API_VERSION_1_3;
+    app_info.apiVersion = VK_API_VERSION_1_4;
 
     // debugging
     const char* validation_layers[] = { "VK_LAYER_KHRONOS_validation" };
