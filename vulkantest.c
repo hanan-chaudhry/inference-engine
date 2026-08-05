@@ -43,9 +43,9 @@ void test_add(VkContext* ctx) {
 }
 
 void test_matmul(VkContext* ctx) {
-    uint32_t M = 2048;
-    uint32_t K = 2048;
-    uint32_t N = 2048;
+    uint32_t M = 8192;
+    uint32_t K = 8192;
+    uint32_t N = 8192;
 
     size_t bytes_A = M * K * sizeof(float);
     size_t bytes_B = K * N * sizeof(float);

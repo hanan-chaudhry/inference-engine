@@ -5,6 +5,8 @@
 #include <time.h>
 #include <blis/blis.h>
 
+#define CALC_MS(start, end) (((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1000.0)
+
 void kernel_matmul_cpu_f32_forward(
     const float* a, const float* b, float* out,
     const uint32_t M, const uint32_t N, const uint32_t K
@@ -28,14 +30,17 @@ void kernel_matmul_cpu_f32_forward(
 }
 
 
-
-
 void kernel_matmul_vulkan_f32_forward(
     VkContext* ctx,
     const float* a, const float* b, float* out,
     const uint32_t M, const uint32_t N, const uint32_t K,
     double* time
 ) {
+    struct timespec t0, t1, t2, t3, t4, t5, t6;
+
+    // --- PHASE 0: Start ---
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+
     size_t bytes_A = M * K * sizeof(float);
     size_t bytes_B = K * N * sizeof(float);
     size_t bytes_C = M * N * sizeof(float);
@@ -45,9 +50,15 @@ void kernel_matmul_vulkan_f32_forward(
     vk_allocate_tensor(ctx, &vk_b, bytes_B);
     vk_allocate_tensor(ctx, &vk_out, bytes_C);
 
+    // --- PHASE 1: Allocation complete ---
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+
     memcpy(vk_a.mapped_ptr, a, bytes_A);
     memcpy(vk_b.mapped_ptr, b, bytes_B);
     memset(vk_out.mapped_ptr, 0, bytes_C);
+
+    // --- PHASE 2: Copy CPU -> GPU complete ---
+    clock_gettime(CLOCK_MONOTONIC, &t2);
 
     VkDescriptorSetLayout desc_layout;
     VkPipelineLayout pipe_layout;
@@ -69,24 +80,27 @@ void kernel_matmul_vulkan_f32_forward(
     uint32_t group_x = (N + 15) / 16;
     uint32_t group_y = (M + 15) / 16;
 
-    struct timespec start, end;
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    // --- PHASE 3: Pipeline & Setup complete ---
+    clock_gettime(CLOCK_MONOTONIC, &t3);
 
     vk_dispatch(ctx, pipeline, pipe_layout, buffers, 3, &params, group_x, group_y, 1);
-    // vkQueueWaitIdle(ctx->compute_queue);
+
     VkResult wait_res = vkQueueWaitIdle(ctx->compute_queue);
     if (wait_res != VK_SUCCESS) {
         printf("CRITICAL: GPU crashed or was killed by the OS! Error code: %d\n", wait_res);
     }
 
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    // --- PHASE 4: GPU Dispatch complete ---
+    clock_gettime(CLOCK_MONOTONIC, &t4);
 
     if (time != NULL) {
-        *time = (end.tv_sec - start.tv_sec) +
-            (end.tv_nsec - start.tv_nsec) / 1e9;
+        *time = (t4.tv_sec - t3.tv_sec) + (t4.tv_nsec - t3.tv_nsec) / 1e9;
     }
 
     memcpy(out, vk_out.mapped_ptr, bytes_C);
+
+    // --- PHASE 5: Copy GPU -> CPU complete ---
+    clock_gettime(CLOCK_MONOTONIC, &t5);
 
     vk_free_tensor(ctx, &vk_a);
     vk_free_tensor(ctx, &vk_b);
@@ -95,4 +109,17 @@ void kernel_matmul_vulkan_f32_forward(
     vkDestroyPipeline(ctx->device, pipeline, NULL);
     vkDestroyPipelineLayout(ctx->device, pipe_layout, NULL);
     vkDestroyDescriptorSetLayout(ctx->device, desc_layout, NULL);
+
+    // --- PHASE 6: Cleanup complete ---
+    clock_gettime(CLOCK_MONOTONIC, &t6);
+
+    printf("\n--- VULKAN FUNCTION TIME DISTRIBUTION ---\n");
+    printf("1. VRAM Allocation:       %8.3f ms\n", CALC_MS(t0, t1));
+    printf("2. Memcpy (CPU to GPU):   %8.3f ms\n", CALC_MS(t1, t2));
+    printf("3. Pipeline Setup (I/O):  %8.3f ms\n", CALC_MS(t2, t3));
+    printf("4. GPU Compute Dispatch:  %8.3f ms\n", CALC_MS(t3, t4));
+    printf("5. Memcpy (GPU to CPU):   %8.3f ms\n", CALC_MS(t4, t5));
+    printf("6. VRAM & Layout Cleanup: %8.3f ms\n", CALC_MS(t5, t6));
+    printf("-----------------------------------------\n");
+    printf("TOTAL FUNCTION TIME:      %8.3f ms\n\n", CALC_MS(t0, t6));
 }
