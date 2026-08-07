@@ -4,7 +4,7 @@
 #include "vk_mem.h"
 
 typedef struct {
-    uint32_t B;         // Batch size
+    uint32_t batch;     // Batch size
     uint32_t M;         // Rows (or total elements for 1D arrays)
     uint32_t N;         // Columns
     uint32_t K;         // Inner dimension for MatMul

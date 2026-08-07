@@ -1,10 +1,10 @@
 #version 460
 
-layout(local_size_x = 16) in;
+layout(local_size_x = 256) in;
 
 layout(push_constant) uniform PushConstants {
     uint batch;
-    uint M;  
+    uint M;
     uint N;
     uint K;
     float eps;
@@ -14,10 +14,7 @@ layout(std430, set = 0, binding = 0) buffer bufferA { float A[]; };
 
 void main() {
     uint i = gl_GlobalInvocationID.x;
+    if (i >= params.N) return;
     
-    if (i >= params.N) {
-        return;
-    }
-    
-    A[i] = A[i] * params.eps;
+    A[i] = max(A[i], 0.0);
 }

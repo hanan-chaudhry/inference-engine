@@ -3,7 +3,7 @@
 layout(local_size_x = 16) in;
 
 layout(push_constant) uniform PushConstants {
-    uint B;
+    uint batch;
     uint M;
     uint N;
     uint K;
