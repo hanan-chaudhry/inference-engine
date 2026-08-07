@@ -9,6 +9,7 @@ typedef struct {
     uint32_t N;         // Columns
     uint32_t K;         // Inner dimension for MatMul
     float eps;          // Epsilon for normalization
+    uint32_t flags;     // Additional flags for future use
 } PushParams;
 
 // The Universal Dispatcher
