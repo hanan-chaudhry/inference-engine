@@ -4,11 +4,11 @@ layout(local_size_x = 16) in;
 
 layout(push_constant) uniform PushConstants {
     uint batch;
-    uint M;  
+    uint M;
     uint N;
     uint K;
     float eps;
-    uint32_t flags;
+    uint flags;
 } params;
 
 layout(std430, set = 0, binding = 0) buffer bufferA { float A[]; };

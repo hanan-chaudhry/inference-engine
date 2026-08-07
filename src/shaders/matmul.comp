@@ -8,7 +8,7 @@ layout(push_constant) uniform PushConstants {
     uint N;
     uint K;
     float eps;
-    uint32_t flags;
+    uint flags;
 } params;
 
 layout(std430, set = 0, binding = 0) readonly buffer bufferA { float A[]; };
