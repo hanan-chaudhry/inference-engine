@@ -37,7 +37,7 @@ void kernel_gelu_vulkan_f32_forward(
 
     VkTensorBuffer* buffers[] = { &vk_x, &vk_x, &vk_x };
     PushParams params = { 0 };
-    params.M = n;
+    params.N = n;
 
     uint32_t group_x = (n + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE;
 
