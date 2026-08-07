@@ -29,7 +29,7 @@ torch.set_grad_enabled(False)
 num_tests = 1000
 
 L = 3
-D = 4
+D = 8
 NUM_HEADS = 2
 
 passed = 0

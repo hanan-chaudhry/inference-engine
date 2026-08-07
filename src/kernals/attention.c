@@ -13,18 +13,16 @@ void attention(const float* __restrict Q, const float* __restrict K,
     // uint32_t out_dim = n * d;
     float score[score_dim];
     float probs[score_dim];
+    float mask[score_dim];
     float alpha = 1.0f;
     float beta = 0.0f;
+    float min = -FLT_MAX * masked;
     float sqrt_d = sqrtf(d);
     bli_sgemm(BLIS_NO_TRANSPOSE, BLIS_TRANSPOSE, n, n, d, &alpha, Q, 1,
          n, K, 1, n, &beta, score, n, 1);
     bli_sinvscalv(BLIS_NO_CONJUGATE, score_dim, &sqrt_d, score, 1);
-    
-    for (uint32_t i = 0; i < n; i++) {
-        for (uint32_t j = i + 1; j < n; j++) {
-            score[i * n + j] = -FLT_MAX * masked;
-        }
-    }
+    bli_ssetm(BLIS_NO_CONJUGATE, 1, BLIS_NONUNIT_DIAG, BLIS_UPPER, n, n, &min, mask, n, 1);
+    bli_saddm(1, BLIS_NONUNIT_DIAG, BLIS_UPPER, BLIS_NO_TRANSPOSE, n, n, mask, n, 1, score, n, 1);
     
     for(int i = 0;i < n;i++){
         softmax((score + (i * n)), (probs + (i * n)), n);
