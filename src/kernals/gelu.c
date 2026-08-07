@@ -1,14 +1,15 @@
 #include"../../inc/kernals/gelu.h"
 #include <math.h>
+#include <string.h>
 
 #define WORKGROUP_SIZE 256
 
-void kernel_gelu_cpu_f32_forward(const float* __restrict x, float* __restrict y, const size_t length) {
+void kernel_gelu_cpu_f32_forward(const float* __restrict x, float* __restrict y, const size_t len) {
     const float half = 0.5f;
     const float root_two_over_pi = 0.7978845608028654f;
     const float coeff = 0.044715f;
 
-    for (size_t i = 0; i < length; i++) {
+    for (size_t i = 0; i < len; i++) {
         float x1 = x[i];
         float x3 = x1 * x1 * x1;
         float inner = root_two_over_pi * (x1 + coeff * x3);
@@ -20,9 +21,9 @@ void kernel_gelu_vulkan_f32_forward(
     VkContext* ctx,
     const float* x,
     float* y,
-    const size_t n
+    const size_t len
 ) {
-    size_t byte_size = n * sizeof(float);
+    size_t byte_size = len * sizeof(float);
 
     VkTensorBuffer vk_x = { 0 };
     vk_allocate_tensor(ctx, &vk_x, byte_size);
@@ -37,9 +38,9 @@ void kernel_gelu_vulkan_f32_forward(
 
     VkTensorBuffer* buffers[] = { &vk_x, &vk_x, &vk_x };
     PushParams params = { 0 };
-    params.N = n;
+    params.N = len;
 
-    uint32_t group_x = (n + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE;
+    uint32_t group_x = (len + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE;
 
     vk_dispatch(ctx, pipeline, pipe_layout, buffers, 3, &params, group_x, 1, 1);
 

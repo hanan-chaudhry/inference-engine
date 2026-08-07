@@ -3,6 +3,10 @@
 #include "inc/backend/vk_core.h"
 #include "inc/kernals/add.h"
 #include "inc/kernals/matmul.h"
+#include "inc/kernals/scale.h"
+#include "inc/kernals/relu.h"
+#include "inc/kernals/silu.h"
+#include "inc/kernals/gelu.h"
 
 void test_add(VkContext* ctx) {
     size_t N = 2048;
@@ -75,7 +79,7 @@ void test_matmul(VkContext* ctx) {
     printf("Hardware Efficiency:        %.2f%%\n", efficiency);
 
 
-    printf("\n--- MATMUL TEST (%dx%d * %dx%d) ---\n", M, K, K, N);
+    printf("\n[MATMUL TEST (%dx%d * %dx%d)]\n", M, K, K, N);
     printf("CPU Result[0]: %f\n", C_cpu[0]);
     printf("GPU Result[0]: %f\n", C_gpu[0]);
 
@@ -98,8 +102,153 @@ void test_matmul(VkContext* ctx) {
 }
 
 void test_scale(VkContext* ctx) {
-    printf("pass");
+    uint32_t N = 1024 * 1024 * 4;
+    size_t bytes = N * sizeof(float);
+    float alpha = 2.5f;
+
+    float* A_cpu = (float*)malloc(bytes);
+    float* A_gpu = (float*)malloc(bytes);
+
+    for (uint32_t i = 0; i < N; i++) {
+        float val = (float)(i % 100) * 0.1f;
+        A_cpu[i] = val;
+        A_gpu[i] = val;
+    }
+
+    kernel_scale_cpu_f32(A_cpu, alpha, N);
+    kernel_scale_vulkan_f32(ctx, A_gpu, alpha, N);
+
+    printf("\n[SCALE TEST (%u elements)]\n", N);
+    printf("CPU Result[10]: %f\n", A_cpu[10]);
+    printf("GPU Result[10]: %f\n", A_gpu[10]);
+
+    int mismatch = 0;
+    for (uint32_t i = 0; i < N; i++) {
+        float diff = A_cpu[i] - A_gpu[i];
+        if (diff < -0.0001f || diff > 0.0001f) {
+            printf("MISMATCH at index %u: CPU=%f, GPU=%f\n", i, A_cpu[i], A_gpu[i]);
+            mismatch = 1;
+            break;
+        }
+    }
+
+    if (!mismatch) {
+        printf("Status: SUCCESS (All %u elements match!)\n", N);
+    }
+    printf("\n\n");
+
+    free(A_cpu); free(A_gpu);
 }
+
+void test_relu(VkContext* ctx) {
+    size_t N = 1024 * 1024 * 4;
+    size_t bytes = N * sizeof(float);
+
+    float* X = (float*)malloc(bytes);
+    float* Out_cpu = (float*)malloc(bytes);
+    float* Out_gpu = (float*)malloc(bytes);
+
+    for (size_t i = 0; i < N; i++) {
+        X[i] = ((float)(i % 100) / 10.0f) - 5.0f;
+    }
+
+    kernel_relu_cpu_f32_forward(X, Out_cpu, N);
+    kernel_relu_vulkan_f32_forward(ctx, X, Out_gpu, N);
+
+    printf("\n[ReLU TEST (%zu elements)]\n", N);
+    printf("Input[-5.0]: %f -> CPU: %f, GPU: %f\n", X[0], Out_cpu[0], Out_gpu[0]);
+    printf("Input[+4.9]: %f -> CPU: %f, GPU: %f\n", X[99], Out_cpu[99], Out_gpu[99]);
+
+    int mismatch = 0;
+    for (size_t i = 0; i < N; i++) {
+        float diff = Out_cpu[i] - Out_gpu[i];
+        if (diff < -0.0001f || diff > 0.0001f) {
+            printf("MISMATCH at index %zu: CPU=%f, GPU=%f\n", i, Out_cpu[i], Out_gpu[i]);
+            mismatch = 1;
+            break;
+        }
+    }
+
+    if (!mismatch) {
+        printf("Status: SUCCESS (All %zu elements match!)\n", N);
+    }
+    printf("\n\n");
+
+    free(X); free(Out_cpu); free(Out_gpu);
+}
+
+void test_silu(VkContext* ctx) {
+    size_t N = 1024 * 1024 * 4;
+    size_t bytes = N * sizeof(float);
+
+    float* X = (float*)malloc(bytes);
+    float* Out_cpu = (float*)malloc(bytes);
+    float* Out_gpu = (float*)malloc(bytes);
+
+    for (size_t i = 0; i < N; i++) {
+        X[i] = ((float)(i % 100) / 10.0f) - 5.0f;
+    }
+
+    kernel_silu_cpu_f32_forward(X, Out_cpu, N);
+    kernel_silu_vulkan_f32_forward(ctx, X, Out_gpu, N);
+
+    printf("\n[SiLU TEST (%zu elements)]\n", N);
+    printf("Input[+2.0]: %f -> CPU: %f, GPU: %f\n", X[70], Out_cpu[70], Out_gpu[70]);
+
+    int mismatch = 0;
+    for (size_t i = 0; i < N; i++) {
+        float diff = Out_cpu[i] - Out_gpu[i];
+        if (diff < -0.0005f || diff > 0.0005f) {
+            printf("MISMATCH at index %zu: CPU=%f, GPU=%f\n", i, Out_cpu[i], Out_gpu[i]);
+            mismatch = 1;
+            break;
+        }
+    }
+
+    if (!mismatch) {
+        printf("Status: SUCCESS (All %zu elements match!)\n", N);
+    }
+    printf("\n\n");
+
+    free(X); free(Out_cpu); free(Out_gpu);
+}
+
+void test_gelu(VkContext* ctx) {
+    size_t N = 1024 * 1024 * 4;
+    size_t bytes = N * sizeof(float);
+
+    float* X = (float*)malloc(bytes);
+    float* Out_cpu = (float*)malloc(bytes);
+    float* Out_gpu = (float*)malloc(bytes);
+
+    for (size_t i = 0; i < N; i++) {
+        X[i] = ((float)(i % 100) / 10.0f) - 5.0f;
+    }
+
+    kernel_gelu_cpu_f32_forward(X, Out_cpu, N);
+    kernel_gelu_vulkan_f32_forward(ctx, X, Out_gpu, N);
+
+    printf("\n[GeLU TEST (%zu elements)]\n", N);
+    printf("Input[+2.0]: %f -> CPU: %f, GPU: %f\n", X[70], Out_cpu[70], Out_gpu[70]);
+
+    int mismatch = 0;
+    for (size_t i = 0; i < N; i++) {
+        float diff = Out_cpu[i] - Out_gpu[i];
+        if (diff < -0.0005f || diff > 0.0005f) {
+            printf("MISMATCH at index %zu: CPU=%f, GPU=%f\n", i, Out_cpu[i], Out_gpu[i]);
+            mismatch = 1;
+            break;
+        }
+    }
+
+    if (!mismatch) {
+        printf("Status: SUCCESS (All %zu elements match!)\n", N);
+    }
+    printf("\n\n");
+
+    free(X); free(Out_cpu); free(Out_gpu);
+}
+
 
 int main() {
     VkContext ctx;
@@ -113,6 +262,9 @@ int main() {
         printf("[1] Test Add\n");
         printf("[2] Test MatMul\n");
         printf("[3] Test Scale\n");
+        printf("[4] Test ReLU\n");
+        printf("[5] Test SiLU\n");
+        printf("[6] Test GeLU\n");
         printf("[0] Exit\n");
         printf("Select Test: ");
 
@@ -132,6 +284,15 @@ int main() {
             break;
         case 3:
             test_scale(&ctx);
+            break;
+        case 4:
+            test_relu(&ctx);
+            break;
+        case 5:
+            test_silu(&ctx);
+            break;
+        case 6:
+            test_gelu(&ctx);
             break;
         default:
             printf("\n[ Invalid choice. Try again. ]\n\n");

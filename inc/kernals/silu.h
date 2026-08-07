@@ -11,7 +11,7 @@ void kernel_silu_vulkan_f32_forward(
     VkContext* ctx,
     const float* x,
     float* y,
-    const size_t n
+    const size_t len
 );
 
 #endif

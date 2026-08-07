@@ -9,14 +9,14 @@
 void kernel_add_cpu_f32_forward(
     const float* a, const float* b,
     float* out,
-    const size_t length
+    const size_t len
 );
 
 void kernel_add_vulkan_f32_forward(
     VkContext* ctx,
     const float* a, const float* b,
     float* out,
-    const size_t n
+    const size_t len
 );
 
 #endif

@@ -2,13 +2,15 @@
 #include <stddef.h>
 #include <string.h>
 
+#define WORKGROUP_SIZE 16
+
 void kernel_add_cpu_f32_forward(
     const float* a,
     const float* b,
     float* out,
-    const size_t n
+    const size_t len
 ) {
-    for (size_t i = 0; i < n; i++) {
+    for (size_t i = 0; i < len; i++) {
         out[i] = a[i] + b[i];
     }
 }
@@ -18,9 +20,9 @@ void kernel_add_vulkan_f32_forward(
     VkContext* ctx,
     const float* a, const float* b,
     float* out,
-    const size_t n
+    const size_t len
 ) {
-    size_t byte_size = n * sizeof(float);
+    size_t byte_size = len * sizeof(float);
 
     // 1. Allocate temporary VRAM tensors
     VkTensorBuffer vk_a, vk_b, vk_out;
@@ -44,9 +46,9 @@ void kernel_add_vulkan_f32_forward(
     // 4. Setup Dispatch parameters
     VkTensorBuffer* buffers[] = { &vk_a, &vk_b, &vk_out };
     PushParams params = { 0 };
-    params.M = n;
+    params.N = len;
 
-    uint32_t group_x = (n + 15) / 16; // local_size_x = 16 in add.comp
+    uint32_t group_x = (len + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE;
 
     // 5. dispatch to the GPU
     vk_dispatch(ctx, pipeline, pipe_layout, buffers, 3, &params, group_x, 1, 1);

@@ -5,6 +5,7 @@
 #include <time.h>
 #include <blis/blis.h>
 
+#define WORKGROUP_SIZE 16
 #define CALC_MS(start, end) (((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1000.0)
 
 void kernel_matmul_cpu_f32_forward(
@@ -77,8 +78,8 @@ void kernel_matmul_vulkan_f32_forward(
     params.N = N;
     params.K = K;
 
-    uint32_t group_x = (N + 15) / 16;
-    uint32_t group_y = (M + 15) / 16;
+    uint32_t group_x = (N + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE;
+    uint32_t group_y = (M + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE;
 
     // --- PHASE 3: Pipeline & Setup complete ---
     clock_gettime(CLOCK_MONOTONIC, &t3);

@@ -4,34 +4,18 @@
 #define WORKGROUP_SIZE 256
 
 void kernel_relu_cpu_f32_forward(const float* __restrict x, float* __restrict y, const uint32_t len) {
-    uint64_t mask = 0x7FFFFFFFFFFFFFFF;
-    for (int i = 0;i < len;i++) {
-        uint64_t bits;
-        memcpy(&bits, (x + i), sizeof(bits));
-        memcpy((y + i), (x + i), sizeof(float));
-        uint64_t val = bits;
-        val &= mask;
-        float value;
-        memcpy(&value, &val, sizeof(bits));
-        y[i] += value;
-        y[i] /= 2.0f;
+    for (uint32_t i = 0; i < len; i++) {
+        y[i] = x[i] > 0.0f ? x[i] : 0.0f;
     }
 }
-
-// void kernel_relu_cpu_f32_forward(float* x, uint32_t len) {
-//     for (int i = 0;i < len;i++) {
-//         fmaxf(0.0f, x[i]);
-//     }
-//     return;
-// }
 
 void kernel_relu_vulkan_f32_forward(
     VkContext* ctx,
     const float* x,
     float* y,
-    const size_t n
+    const size_t len
 ) {
-    size_t byte_size = n * sizeof(float);
+    size_t byte_size = len * sizeof(float);
 
     VkTensorBuffer vk_x = { 0 };
     vk_allocate_tensor(ctx, &vk_x, byte_size);
@@ -46,9 +30,9 @@ void kernel_relu_vulkan_f32_forward(
 
     VkTensorBuffer* buffers[] = { &vk_x, &vk_x, &vk_x };
     PushParams params = { 0 };
-    params.N = n;
+    params.N = len;
 
-    uint32_t group_x = (n + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE;
+    uint32_t group_x = (len + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE;
 
     vk_dispatch(ctx, pipeline, pipe_layout, buffers, 3, &params, group_x, 1, 1);
 
