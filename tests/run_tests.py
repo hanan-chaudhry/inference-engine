@@ -5,15 +5,15 @@ from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 
 tests = [
-    # root / "tests/unit/layernorm.py",
-    # root / "tests/unit/rmsnorm.py",
-    # root / "tests/unit/softmax.py",
+    root / "tests/unit/layernorm.py",
+    root / "tests/unit/rmsnorm.py",
+    root / "tests/unit/softmax.py",
     root / "tests/unit/attention.py",
     root / "tests/unit/multiAttention.py",
-    # root / "tests/unit/silu.py",
-    # root / "tests/unit/sigmoid.py",
-    # root / "tests/unit/relu.py",
-    # root / "tests/unit/gelu.py",
+    root / "tests/unit/silu.py",
+    root / "tests/unit/sigmoid.py",
+    root / "tests/unit/relu.py",
+    root / "tests/unit/gelu.py",
 ]
 
 passed = 0

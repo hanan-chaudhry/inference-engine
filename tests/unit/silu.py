@@ -8,13 +8,13 @@ import platform
 _EXT = {"Darwin": ".dylib", "Linux": ".so", "Windows": ".dll"}
 lib = ctypes.CDLL(f"build/libkernels{_EXT[platform.system()]}")
 
-lib.SILU.argtypes = [
+lib.kernel_silu_cpu_f32_forward.argtypes = [
     np.ctypeslib.ndpointer(dtype=np.float32, flags="C_CONTIGUOUS"),
     np.ctypeslib.ndpointer(dtype=np.float32, flags="C_CONTIGUOUS"),
     ctypes.c_uint32
 ]
 
-lib.SILU.restype = None
+lib.kernel_silu_cpu_f32_forward.restype = None
 
 num_test = 1000
 length = 100
@@ -25,7 +25,7 @@ for _ in range(num_test):
     b = np.zeros_like(a)
     x = torch.tensor(a)
     y = F.silu(x)
-    lib.SILU(a,b, length)
+    lib.kernel_silu_cpu_f32_forward(a, b, length)
     
     try:
         assert (np.allclose(b, y, rtol=1e-3, atol=1e-4))
