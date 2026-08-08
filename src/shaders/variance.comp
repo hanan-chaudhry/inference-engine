@@ -1,0 +1,28 @@
+#version 460
+#extension GL_EXT_shader_atomic_float : require
+
+layout(local_size_x = 16) in;
+// variance should be 0 before call
+// eps = mean
+layout(push_constant) uniform PushConstants {
+    uint batch;
+    uint M;
+    uint N;
+    uint K;
+    float eps;
+    uint flags;
+} params;
+
+layout(std430, set = 0, binding = 0) readonly buffer bufferA { float A[]; };
+layout(std430, set = 0, binding = 1) buffer Data {
+    float variance;
+} data;
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= params.N)
+        return;
+    float a = (A[i] - params.eps);
+    float x = (a * a) / float(params.N);
+    atomicAdd(data.variance, x);
+}

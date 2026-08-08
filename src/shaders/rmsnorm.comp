@@ -1,0 +1,27 @@
+#version 460
+
+layout(local_size_x = 16) in;
+// call this row by row; i.e. vector by vector
+layout(push_constant) uniform PushConstants {
+    uint batch;
+    uint M;
+    uint N;
+    uint K;
+    float eps;
+    uint flags;
+} params;
+
+layout(std430, set = 0, binding = 0) readonly buffer bufferA { float weight[]; };
+layout(std430, set = 0, binding = 1) readonly buffer bufferB { float X[]; };
+layout(std430, set = 0, binding = 2) writeonly buffer bufferD { float Y[]; };
+layout(std430, set = 0, binding = 3) buffer Data {
+    float RMS_square;
+} data;
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= params.N)
+        return;
+        
+    Y[i] = weight[i] * (X[i] / sqrt(data.RMS_square + params.eps));
+}

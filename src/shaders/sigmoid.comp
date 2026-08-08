@@ -1,0 +1,22 @@
+#version 460
+
+layout(local_size_x = 16) in;
+
+layout(push_constant) uniform PushConstants {
+    uint batch;
+    uint M;
+    uint N;
+    uint K;
+    float eps;
+    uint flags;
+} params;
+
+layout(std430, set = 0, binding = 0) readonly buffer bufferA { float A[]; };
+layout(std430, set = 0, binding = 1) writeonly buffer bufferC { float C[]; };
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= params.N)
+        return;
+    C[i] = 1.0f / (1.0f + exp(-A[i]));
+}
